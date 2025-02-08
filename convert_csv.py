@@ -4,6 +4,11 @@ import argparse
 from datetime import datetime
 from collections import defaultdict
 
+# Global variables for local address
+LOCAL_CITY = 'Jackson'
+LOCAL_STATE = 'MN'
+LOCAL_ZIP = '56143'
+
 # Global variables for argparse arguments
 args = None
 
@@ -95,45 +100,6 @@ def format_name(member):
         name += f" ({member['Nickname']})"
     return name
 
-def main():
-    parse_args()
-    families = process_csv(args.input_file)
-
-    # Process families and create grouped output
-    grouped_output = []
-    for family_members in families.values():
-        family_lines = format_family(family_members)
-        if family_lines:
-            # Use the first line (which contains the primary adult) for sorting
-            sort_key = get_sort_key(family_lines[0])
-            grouped_output.append((sort_key, family_lines))
-
-    # Sort the grouped output
-    grouped_output.sort(key=lambda x: x[0])
-
-    # Print the sorted output
-    for _, family_lines in grouped_output:
-        print("<BREAK>".join(family_lines))
-
-def get_sort_key(line):
-    name_part = line.split('\t')[0]
-    parts = name_part.split(', ')
-    if len(parts) < 2:
-        return ('', '')  # Handle unexpected format
-
-    last_name = parts[0]
-    first_name_part = parts[1]
-
-    if '&' in first_name_part:
-        first_name = first_name_part.split(' & ')[0]
-    else:
-        first_name = first_name_part
-
-    # Remove any nickname in parentheses
-    first_name = first_name.split(' (')[0]
-
-    return (last_name, first_name)
-
 def format_family(family_members):
     primary_adult = determine_primary_adult(family_members)
     if not primary_adult:
@@ -159,7 +125,7 @@ def format_family(family_members):
         first_line = format_name(primary_adult)
 
     address = primary_adult['Street Address']
-    if primary_adult['City'].lower() != 'jackson' or primary_adult['State'].lower() != 'mn' or primary_adult['Zip'] != '56143':
+    if primary_adult['City'].lower() != LOCAL_CITY.lower() or primary_adult['State'].lower() != LOCAL_STATE.lower() or primary_adult['Zip'] != LOCAL_ZIP:
         address += f", {primary_adult['City']}, {primary_adult['State']} {primary_adult['Zip']}"
 
     # Collect all unique phone numbers for the family
@@ -225,6 +191,45 @@ def format_family(family_members):
         lines.append(f"\t\t{phone}")
 
     return lines
+
+def main():
+    parse_args()
+    families = process_csv(args.input_file)
+
+    # Process families and create grouped output
+    grouped_output = []
+    for family_members in families.values():
+        family_lines = format_family(family_members)
+        if family_lines:
+            # Use the first line (which contains the primary adult) for sorting
+            sort_key = get_sort_key(family_lines[0])
+            grouped_output.append((sort_key, family_lines))
+
+    # Sort the grouped output
+    grouped_output.sort(key=lambda x: x[0])
+
+    # Print the sorted output
+    for _, family_lines in grouped_output:
+        print("<BREAK>".join(family_lines))
+
+def get_sort_key(line):
+    name_part = line.split('\t')[0]
+    parts = name_part.split(', ')
+    if len(parts) < 2:
+        return ('', '')  # Handle unexpected format
+
+    last_name = parts[0]
+    first_name_part = parts[1]
+
+    if '&' in first_name_part:
+        first_name = first_name_part.split(' & ')[0]
+    else:
+        first_name = first_name_part
+
+    # Remove any nickname in parentheses
+    first_name = first_name.split(' (')[0]
+
+    return (last_name, first_name)
 
 if __name__ == "__main__":
     main()
