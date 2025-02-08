@@ -162,27 +162,54 @@ def format_family(family_members):
     if primary_adult['City'].lower() != 'jackson' or primary_adult['State'].lower() != 'mn' or primary_adult['Zip'] != '56143':
         address += f", {primary_adult['City']}, {primary_adult['State']} {primary_adult['Zip']}"
 
+    # Collect all unique phone numbers for the family
+    all_phone_numbers = set()
     phone_numbers = []
+
+    # Process primary adult's phone numbers
     if primary_adult['Mobile'] and primary_adult['Age'] >= 18:
         if second_adult:
-            phone_numbers.append(f"{primary_adult['Mobile']} ({primary_adult['Nickname'] or primary_adult['First Name']})")
+            phone = f"{primary_adult['Mobile']} ({primary_adult['Nickname'] or primary_adult['First Name']})"
         else:
-            phone_numbers.append(f"{primary_adult['Mobile']} (C)")
-    if primary_adult['Home'] and primary_adult['Age'] >= 18:
-        phone_numbers.append(f"{primary_adult['Home']} (H)")
+            phone = f"{primary_adult['Mobile']} (C)"
+        if primary_adult['Mobile'] not in all_phone_numbers:
+            all_phone_numbers.add(primary_adult['Mobile'])
+            phone_numbers.append(phone)
 
+    if primary_adult['Home'] and primary_adult['Age'] >= 18:
+        phone = f"{primary_adult['Home']} (H)"
+        if primary_adult['Home'] not in all_phone_numbers:
+            all_phone_numbers.add(primary_adult['Home'])
+            phone_numbers.append(phone)
+
+    # Process second adult's phone numbers
     if second_adult and second_adult['Age'] >= 18:
         if second_adult['Mobile']:
-            phone_numbers.append(f"{second_adult['Mobile']} ({second_adult['Nickname'] or second_adult['First Name']})")
-        if second_adult['Home']:
-            phone_numbers.append(f"{second_adult['Home']} (H)")
+            phone = f"{second_adult['Mobile']} ({second_adult['Nickname'] or second_adult['First Name']})"
+            if second_adult['Mobile'] not in all_phone_numbers:
+                all_phone_numbers.add(second_adult['Mobile'])
+                phone_numbers.append(phone)
 
+        if second_adult['Home']:
+            phone = f"{second_adult['Home']} (H)"
+            if second_adult['Home'] not in all_phone_numbers:
+                all_phone_numbers.add(second_adult['Home'])
+                phone_numbers.append(phone)
+
+    # Process dependents' phone numbers
     for dependent in dependents:
         if dependent['Age'] >= 18:
             if dependent['Mobile']:
-                phone_numbers.append(f"{dependent['Mobile']} ({dependent['Nickname'] or dependent['First Name']})")
+                phone = f"{dependent['Mobile']} ({dependent['Nickname'] or dependent['First Name']})"
+                if dependent['Mobile'] not in all_phone_numbers:
+                    all_phone_numbers.add(dependent['Mobile'])
+                    phone_numbers.append(phone)
+
             if dependent['Home']:
-                phone_numbers.append(f"{dependent['Home']} (H)")
+                phone = f"{dependent['Home']} (H)"
+                if dependent['Home'] not in all_phone_numbers:
+                    all_phone_numbers.add(dependent['Home'])
+                    phone_numbers.append(phone)
 
     first_line_with_phone = f"{first_line}\t{address}\t{phone_numbers[0] if phone_numbers else ''}"
     lines.append(first_line_with_phone)
