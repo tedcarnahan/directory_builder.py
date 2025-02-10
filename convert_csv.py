@@ -137,7 +137,10 @@ def format_family(family_members):
         if second_adult:
             phone = f"{primary_adult['Mobile']} ({primary_adult['Nickname'] or primary_adult['First Name']})"
         else:
-            phone = f"{primary_adult['Mobile']} (C)"
+            # Only add (C) if there are other phone numbers
+            phone = primary_adult['Mobile']
+            if primary_adult['Home'] or any(d['Mobile'] or d['Home'] for d in dependents if d['Age'] >= 18):
+                phone += " (C)"
         if primary_adult['Mobile'] not in all_phone_numbers:
             all_phone_numbers.add(primary_adult['Mobile'])
             phone_numbers.append(phone)
