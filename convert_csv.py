@@ -4,11 +4,6 @@ import argparse
 from datetime import datetime
 from collections import defaultdict
 
-# Global variables for local address
-LOCAL_CITY = 'Jackson'
-LOCAL_STATE = 'MN'
-LOCAL_ZIP = '56143'
-
 # Global variables for argparse arguments
 args = None
 
@@ -18,6 +13,9 @@ def parse_args():
     parser.add_argument('--debug', action='store_true', help='Enable debug output')
     parser.add_argument('--start', type=int, default=1, help='Start processing from Nth record')
     parser.add_argument('--end', type=int, default=float('inf'), help='End processing at Mth record')
+    parser.add_argument('--local-city', default='Jackson', help='Local city name (default: Jackson)')
+    parser.add_argument('--local-state', default='MN', help='Local state code (default: MN)')
+    parser.add_argument('--local-zip', default='56143', help='Local ZIP code (default: 56143)')
     parser.add_argument('input_file', help='Input CSV file')
     args = parser.parse_args()
 
@@ -125,7 +123,9 @@ def format_family(family_members):
         first_line = format_name(primary_adult)
 
     address = primary_adult['Street Address']
-    if primary_adult['City'].lower() != LOCAL_CITY.lower() or primary_adult['State'].lower() != LOCAL_STATE.lower() or primary_adult['Zip'] != LOCAL_ZIP:
+    if primary_adult['City'].lower() != args.local_city.lower() or \
+       primary_adult['State'].lower() != args.local_state.lower() or \
+       primary_adult['Zip'] != args.local_zip:
         address += f", {primary_adult['City']}, {primary_adult['State']} {primary_adult['Zip']}"
 
     # Collect all unique phone numbers for the family
@@ -143,7 +143,11 @@ def format_family(family_members):
             phone_numbers.append(phone)
 
     if primary_adult['Home'] and primary_adult['Age'] >= 18:
-        phone = f"{primary_adult['Home']} (H)"
+        phone = primary_adult['Home']
+        # Only add (H) if there are other phone numbers
+        if primary_adult['Mobile'] or (second_adult and (second_adult['Mobile'] or second_adult['Home'])) or \
+           any(d['Mobile'] or d['Home'] for d in dependents if d['Age'] >= 18):
+            phone += " (H)"
         if primary_adult['Home'] not in all_phone_numbers:
             all_phone_numbers.add(primary_adult['Home'])
             phone_numbers.append(phone)
