@@ -151,6 +151,10 @@ def format_first_line(primary_adult, second_adult):
     return first_line
 
 def format_address(adult):
+    # Return empty string if no street address
+    if not adult['Street Address'].strip():
+        return ''
+        
     address = adult['Street Address']
     if adult['City'].lower() != args.local_city.lower() or \
        adult['State'].lower() != args.local_state.lower() or \
