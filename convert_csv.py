@@ -61,6 +61,8 @@ def determine_second_adult(family_members, primary_adult):
 
 def process_csv(input_file):
     families = defaultdict(list)
+    individual_counter = 1  # Counter for generating unique IDs for individuals
+    
     with open(input_file, 'r', newline='') as csvfile:
         reader = csv.DictReader(csvfile)
         for i, row in enumerate(reader, 1):
@@ -72,7 +74,14 @@ def process_csv(input_file):
             if args.debug:
                 print(f"Processing record {i}: {row}", file=sys.stderr)
 
+            # Generate unique family ID for individuals without a family number
             family_id = row['Family']
+            if not family_id:
+                family_id = f"INDIVIDUAL_{individual_counter}"
+                individual_counter += 1
+                # Set Family Role to Adult for individuals without a family
+                row['Family Role'] = 'Adult'
+
             families[family_id].append({
                 'Breeze ID': row['Breeze ID'],
                 'First Name': row['First Name'].strip(),
